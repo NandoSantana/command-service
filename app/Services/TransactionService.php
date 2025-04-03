@@ -8,20 +8,27 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Exception;
+// use Illuminate\Http\Client\Response;
+// use Illuminate\Http\Response;
 
 class TransactionService
 {
+
+
     public function deposit(int $userId, float $amount): array
     {
+        // dd($userId, $amount);
         $wallet = Wallet::firstOrCreate(['user_id' => $userId]);
         $wallet->balance += $amount;
         $wallet->save();
 
-        return [
-            'status' => 'success',
-            'message' => 'Depósito realizado com sucesso!',
-            'balance' => $wallet->balance
-        ];
+        return 
+            array(
+            "status" => 'success',
+            "message" => 'Depósito realizado com sucesso!',
+            "balance" => $wallet->balance
+            )
+        ;
     }
 
     public function transfer(int $payerId, int $payeeId, float $amount): array
