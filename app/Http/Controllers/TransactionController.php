@@ -19,12 +19,14 @@ class TransactionController extends Controller
 
     public function deposit(Request $request): JsonResponse
     {
+        // dd($request->user_id);
         $data = $request->validate([
             'user_id' => 'required|exists:users,id',
             'amount' => 'required|numeric|min:0.01',
         ]);
+    
 
-        return response()->json($this->transactionService->deposit($data['user_id'], $data['amount']));
+        return response()->json($this->transactionService->deposit($data['user_id'], $request['amount']));
     }
 
     public function transfer(Request $request): JsonResponse

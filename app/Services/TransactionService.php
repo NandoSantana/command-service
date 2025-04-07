@@ -17,7 +17,8 @@ class TransactionService
 
     public function deposit(int $userId, float $amount): array
     {
-        // dd($userId, $amount);
+        // dd($userId);
+        // dd(Wallet::all());
         $wallet = Wallet::firstOrCreate(['user_id' => $userId]);
         $wallet->balance += $amount;
         $wallet->save();
