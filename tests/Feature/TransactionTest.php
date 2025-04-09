@@ -5,25 +5,30 @@
  */
 namespace Tests\Feature;
 
+use Tests\TestCase;
 use App\Models\User;
 use App\Models\Wallet;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Http;
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class TransactionTest extends TestCase
 {
-    use RefreshDatabase;
+    // use RefreshDatabase;
 
     public function setUp(): void
     {
         parent::setUp();
 
         // Seed com usuários para teste
-        $this->artisan('db:seed');
+        // $this->artisan('db:seed');
      
-        $user = User::all();
-        if(!$user)
+        // $user = User::all();
+        // dd($user);
+        // dump(Wallet::all());
+        // dump(Transaction::all());
+        // User::truncate();
+        // if(!$user)
             $this->artisan('db:seed', ['--class' => 'DatabaseSeeder']);
    
 
@@ -33,7 +38,7 @@ class TransactionTest extends TestCase
     public function usuario_comum_pode_fazer_deposito()
     {
         $user = User::where('type', 'common')->get()->first();
-        // dump($user->id);
+      
         $response = $this->postJson('http://localhost/api/command/deposit', [
             'user_id' => $user->id,
             'amount' => 100.00
@@ -53,9 +58,8 @@ class TransactionTest extends TestCase
 
         $payer = User::where('type', 'common')->get()->first();
         $payee = User::where('type', 'merchant')->get()->first();
-
-        Wallet::create(['user_id' => $payer->id, 'balance' => 200.00]);
-        Wallet::create(['user_id' => $payee->id, 'balance' => 0.00]);
+        // Wallet::create(['user_id' => $payer->id, 'balance' => 200.00]);
+        // Wallet::create(['user_id' => $payee->id, 'balance' => 0.00]);
 
         $response = $this->postJson('http://localhost/api/command/transfer', [
             'payer_id' => $payer->id,
@@ -72,8 +76,8 @@ class TransactionTest extends TestCase
     /** @test */
     public function lojista_nao_pode_transferir()
     {
-        $merchant = User::where('type', 'merchant')->first();
-        $user = User::where('type', 'common')->first();
+        $merchant = User::where('type', 'merchant')->get()->first();
+        $user = User::where('type', 'common')->get()->first();
 
         Wallet::create(['user_id' => $merchant->id, 'balance' => 200.00]);
         Wallet::create(['user_id' => $user->id, 'balance' => 0.00]);

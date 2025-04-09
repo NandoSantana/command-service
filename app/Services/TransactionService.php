@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Exception;
+use App\Services\EventPublisherService;
 // use Illuminate\Http\Client\Response;
 // use Illuminate\Http\Response;
 
@@ -17,17 +18,22 @@ class TransactionService
 
     public function deposit(int $userId, float $amount): array
     {
-        // dd($userId);
-        // dd(Wallet::all());
         $wallet = Wallet::firstOrCreate(['user_id' => $userId]);
         $wallet->balance += $amount;
         $wallet->save();
 
+        $publisher = new EventPublisherService();
+        $publisher->publish('wallets', [
+            'id' => $wallet->id,
+            'user_id' => $wallet->user_id,
+            'balance' => $wallet->balance
+        ]);
+
         return 
             array(
-            "status" => 'success',
-            "message" => 'Depósito realizado com sucesso!',
-            "balance" => $wallet->balance
+                "status" => 'success',
+                "message" => 'Depósito realizado com sucesso!',
+                "balance" => $wallet->balance
             )
         ;
     }
@@ -54,17 +60,37 @@ class TransactionService
             if ($authorization['message'] !== 'Autorizado') {
                 throw new Exception("Transação não autorizada.");
             }
+            $publisher = new EventPublisherService();
 
             // Realiza a transferência
             $payerWallet->balance -= $amount;
             $payerWallet->save();
 
+            $publisher->publish('wallets', [
+                'id' => $payerWallet->id,
+                'user_id' => $payerId,
+                'balance' => $payerWallet->balance
+            ]);
+
             $payeeWallet = Wallet::firstOrCreate(['user_id' => $payeeId]);
             $payeeWallet->balance += $amount;
             $payeeWallet->save();
 
+            $publisher->publish('wallets', [
+                'id' => $payeeWallet->id,
+                'user_id' => $payeeId,
+                'balance' => $payeeWallet->balance
+            ]);
+
             // Registra a transação
-            Transaction::create([
+            $transaction = Transaction::create([
+                'payer_id' => $payerId,
+                'payee_id' => $payeeId,
+                'amount' => $amount
+            ]);
+          
+            $publisher->publish('transactions', [
+                'id' => $transaction->id,
                 'payer_id' => $payerId,
                 'payee_id' => $payeeId,
                 'amount' => $amount

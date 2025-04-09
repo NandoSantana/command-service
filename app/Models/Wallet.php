@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Wallet extends Model
 {
-    use HasFactory;
+    // use HasFactory;
     //
     protected $table = "wallets";
 
     protected $fillable = [
+        'id',
         'user_id',
         'balance',
     ];
